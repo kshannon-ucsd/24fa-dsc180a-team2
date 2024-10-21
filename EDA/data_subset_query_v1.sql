@@ -1,11 +1,13 @@
 -- SQL query to get the subset the original research paper used for their study
 
 -- Calculate ages for people in the ICU
+SET SEARCH_PATH =  mimiciii;
+
 WITH icu_age AS (
-     SELECT i.subject_id, i.hadm_id, i.icustay_id, i.dbsource, i.first_careunit, i.last_careunit, i.intime, i.outtime, i.los, DATE_PART('YEAR', AGE(i.intime, p.dob)) as age_years
+     SELECT i.subject_id, i.hadm_id, i.icustay_id, i.dbsource, i.first_careunit, i.last_careunit, i.intime, i.outtime, i.los, DATE_PART('YEAR', AGE(i.intime, p.dob)) as age_years, p.gender
      FROM icustays AS i
      JOIN (
-		SELECT p.subject_id, p.dob
+		SELECT p.subject_id, p.dob, p.gender
           FROM patients AS p
 	 ) AS p ON i.subject_id = p.subject_id
 ),
@@ -26,7 +28,7 @@ icu_age_groups AS (
 
 -- Find the rows that corresponds to a patient's first admission to the ICU
 first_admissions AS(
-	SELECT i1.subject_id, i1.hadm_id, i1.icustay_id, i1.dbsource, i1.first_careunit, i1.last_careunit, i2.first_admission, i1.outtime, i1.los, i1.age_years, i1.age_group
+	SELECT i1.subject_id, i1.hadm_id, i1.icustay_id, i1.dbsource, i1.first_careunit, i1.last_careunit, i2.first_admission, i1.outtime, i1.los, i1.age_years, i1.age_group, i1.gender
 	FROM icu_age_groups AS i1
 	JOIN(
 		SELECT ia.subject_id, MIN(ia.intime) AS first_admission
@@ -38,7 +40,7 @@ first_admissions AS(
 
 -- Merging with admissions table to get additional information and figure out patient's length of stay in hospital
 first_admissions_merge AS (
-	SELECT f.subject_id, f.hadm_id, f.icustay_id, f.dbsource, f.first_careunit, f.last_careunit, f.first_admission, f.outtime, f.los AS los_icu, f.age_years, f.age_group, 
+	SELECT f.subject_id, f.hadm_id, f.icustay_id, f.dbsource, f.first_careunit, f.last_careunit, f.first_admission, f.outtime, f.los AS los_icu, f.age_years, f.age_group, f.gender,
 	CASE
 		WHEN a.admission_type = 'ELECTIVE' THEN 'Elective'
 		ELSE 'Non-elective'
