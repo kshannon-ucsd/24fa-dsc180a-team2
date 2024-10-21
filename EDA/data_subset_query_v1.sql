@@ -23,7 +23,7 @@ icu_age_groups AS (
 		ELSE '85-95'
 	END as age_group
 	FROM icu_age AS i
-	WHERE i.age_years >= 16 
+	WHERE i.age_years >= 16 AND i.age_years < 300
 ),
 
 -- Find the rows that corresponds to a patient's first admission to the ICU
@@ -55,17 +55,29 @@ first_admissions_merge AS (
 
 -- Merge with sofa table to get information on patient's sofa scores
 sofa_score AS (
-	SELECT *
+	SELECT f.subject_id, f.hadm_id, f.icustay_id, f.dbsource, f.first_careunit, f.last_careunit, f.first_admission, f.outtime, f.los_icu, f.los_hospital, f.age_years, f.age_group, f.admission_type, f.hospital_expire_flag, f.has_chartevents_data, f.gender, s.sofa
 	FROM first_admissions_merge AS f
 	JOIN (
 	SELECT s.subject_id, s.icustay_id, s.sofa
 	FROM sofa AS s
 	) AS s on f.icustay_id = s.icustay_id
+),
+
+-- Create table that sums up elixhauser index to create comorbidity index
+elixhauser_sum AS (
+	SELECT *, e.congestive_heart_failure + e.cardiac_arrhythmias + e.valvular_disease + e.pulmonary_circulation + e.peripheral_vascular + e.hypertension + e.paralysis + e.other_neurological + e.chronic_pulmonary + e.diabetes_uncomplicated + e.diabetes_complicated + e.hypothyroidism + e.renal_failure + e.liver_disease + e.peptic_ulcer + e.aids + e.lymphoma + e.metastatic_cancer + e.solid_tumor + e.rheumatoid_arthritis + e.coagulopathy + e.obesity + e.weight_loss + e.fluid_electrolyte + e.blood_loss_anemia + e.deficiency_anemias + e.alcohol_abuse + e.drug_abuse + e.psychoses + e.depression AS score_sum
+	FROM elixhauser_quan AS e
+),
+
+-- Merge with elixhauser to obtain final subset of the data
+subset AS (
+	SELECT s.subject_id, s.hadm_id, s.icustay_id, s.dbsource, s.gender, s.age_years, s.age_group, s.admission_type, e.score_sum AS num_disorders, s.first_careunit, s.last_careunit, s.first_admission AS first_admission_icu, s.outtime AS outtime_icu, s.los_icu, s.los_hospital, s.sofa, s.has_chartevents_data, s.hospital_expire_flag, e.congestive_heart_failure, e.cardiac_arrhythmias, e.valvular_disease, e.pulmonary_circulation, e.peripheral_vascular, e.hypertension, e.paralysis, e.other_neurological, e.chronic_pulmonary, e.diabetes_uncomplicated, e.diabetes_complicated, e.hypothyroidism, e.renal_failure, e.liver_disease, e.peptic_ulcer, e.aids, e.lymphoma, e.metastatic_cancer, e.solid_tumor, e.rheumatoid_arthritis, e.coagulopathy, e.obesity, e.weight_loss, e.fluid_electrolyte, e.blood_loss_anemia, e.deficiency_anemias, e.alcohol_abuse, e.drug_abuse, e.psychoses, e.depression
+	FROM sofa_score AS s
+	JOIN elixhauser_sum AS e ON s.hadm_id = e.hadm_id
+	WHERE e.score_sum IS NOT NULL
 )
 
--- Merge with elixhauser_quan to get information on elixhauser index
 SELECT *
-FROM sofa_score AS s
-JOIN elixhauser_quan AS e ON e.hadm_id = s.hadm_id;
+FROM subset AS s;
 
 
