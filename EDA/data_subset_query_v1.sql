@@ -71,7 +71,18 @@ elixhauser_sum AS (
 
 -- Merge with elixhauser to obtain final subset of the data
 subset AS (
-	SELECT s.subject_id, s.hadm_id, s.icustay_id, s.dbsource, s.gender, s.age_years, s.age_group, s.admission_type, e.score_sum AS num_disorders, s.first_careunit, s.last_careunit, s.first_admission AS first_admission_icu, s.outtime AS outtime_icu, s.los_icu, s.los_hospital, s.sofa, s.has_chartevents_data, s.hospital_expire_flag, e.congestive_heart_failure, e.cardiac_arrhythmias, e.valvular_disease, e.pulmonary_circulation, e.peripheral_vascular, e.hypertension, e.paralysis, e.other_neurological, e.chronic_pulmonary, e.diabetes_uncomplicated, e.diabetes_complicated, e.hypothyroidism, e.renal_failure, e.liver_disease, e.peptic_ulcer, e.aids, e.lymphoma, e.metastatic_cancer, e.solid_tumor, e.rheumatoid_arthritis, e.coagulopathy, e.obesity, e.weight_loss, e.fluid_electrolyte, e.blood_loss_anemia, e.deficiency_anemias, e.alcohol_abuse, e.drug_abuse, e.psychoses, e.depression
+	SELECT s.subject_id, s.hadm_id, s.icustay_id, s.dbsource, s.gender, s.age_years, s.age_group, s.admission_type, e.score_sum AS num_disorders, s.first_careunit, s.last_careunit, s.first_admission AS first_admission_icu, s.outtime AS outtime_icu, s.los_icu, s.los_hospital, s.sofa, s.has_chartevents_data, s.hospital_expire_flag, e.congestive_heart_failure, e.cardiac_arrhythmias, e.valvular_disease, e.pulmonary_circulation, e.peripheral_vascular, e.hypertension, e.paralysis, e.other_neurological, e.chronic_pulmonary, e.diabetes_uncomplicated, e.diabetes_complicated, e.hypothyroidism, e.renal_failure, e.liver_disease, e.peptic_ulcer, e.aids, e.lymphoma, e.metastatic_cancer, e.solid_tumor, e.rheumatoid_arthritis, e.coagulopathy, e.obesity, e.weight_loss, e.fluid_electrolyte, e.blood_loss_anemia, e.deficiency_anemias, e.alcohol_abuse, e.drug_abuse, e.psychoses, e.depression,
+		CASE
+			WHEN e.score_sum = 0 THEN '0'
+			WHEN e.score_sum = 1 THEN '1'
+			WHEN e.score_sum = 2 THEN '2'
+			WHEN e.score_sum = 3 THEN '3'
+			WHEN e.score_sum = 4 THEN '4'
+			WHEN e.score_sum = 5 THEN '5'
+			WHEN e.score_sum = 6 THEN '6'
+			WHEN e.score_sum = 7 THEN '7'
+			ELSE '>8'
+		END AS comorbidity_score 
 	FROM sofa_score AS s
 	JOIN elixhauser_sum AS e ON s.hadm_id = e.hadm_id
 	WHERE e.score_sum IS NOT NULL
