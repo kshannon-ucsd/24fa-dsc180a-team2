@@ -95,7 +95,7 @@ For more detailed instructions, see the official MIMIC-III documentation at [htt
   ```
 ---
 
-## Optional: pgAdmin 4 Database Access
+## pgAdmin 4 Database Access
 
 You can also manage the PostgreSQL database using pgAdmin. Here’s how to connect:
 
