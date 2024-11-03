@@ -9,7 +9,7 @@ lca_data <- read.table('lca_data.csv', sep=",", header = 1)
 
 lca_data <- lca_data + 1
 
-f <- cbind(gender, admission_type, age_16_24, age_25_44, age_45_64, age_65_84, age_85_95, congestive_heart_failure, cardiac_arrhythmias, valvular_disease, pulmonary_circulation, peripheral_vascular, hypertension, paralysis, other_neurological, chronic_pulmonary, diabetes_uncomplicated, diabetes_complicated, hypothyroidism, renal_failure, liver_disease, peptic_ulcer, aids, lymphoma, metastatic_cancer, solid_tumor, rheumatoid_arthritis, coagulopathy, obesity, weight_loss, fluid_electrolyte, blood_loss_anemia, deficiency_anemias, alcohol_abuse, drug_abuse, psychoses, depression) ~ 1
+f <- cbind(gender, admission_type, age_years, congestive_heart_failure, cardiac_arrhythmias, valvular_disease, pulmonary_circulation, peripheral_vascular, hypertension, paralysis, other_neurological, chronic_pulmonary, diabetes_uncomplicated, diabetes_complicated, hypothyroidism, renal_failure, liver_disease, peptic_ulcer, aids, lymphoma, metastatic_cancer, solid_tumor, rheumatoid_arthritis, coagulopathy, obesity, weight_loss, fluid_electrolyte, blood_loss_anemia, deficiency_anemias, alcohol_abuse, drug_abuse, psychoses, depression) ~ 1
 
 model_7 <- poLCA(f, lca_data, nclass = 7, nrep = 10)
 
@@ -32,4 +32,4 @@ reassigned_classes <- apply(posterior_prob, 1, function(class_prob) {
 df$reassigned_classes <- reassigned_classes
 df$six_classes <- model_6$predclass
 
-write.csv(df, "subgroups.csv")
+write.csv(df, "subgroups.csv", row.names = FALSE)

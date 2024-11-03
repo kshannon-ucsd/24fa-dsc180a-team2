@@ -1,20 +1,19 @@
 import pandas as pd
 
-def age_buckets(df):
+def adjust_age(age):
     """
-    Takes in a DataFrame and returns columns that one hot encode which age group a patient 
-    is in.
+    Takes in an age and subtracts 1 from it.
+
+    Subtraction is done to ensure that data is ready for LCA. The value 1 needs to be added across 
+    all columns for it to be a valid input so this offsets that addition.
 
     Args:
-        df (DataFrame): DataFrame.
+        age (int): Integer that represents someone's age in years.
 
     Returns:
-        A DataFrame that has additional columns that indicate which age bucket a patient is in.
-        1 implies membership and 0 non-membership.
+        Integer that represents someone's age subtracted by 1.
     """
-    age_one_hot_encoded = pd.get_dummies(df["age_group"], dtype = "int", prefix = "age")
-    age_one_hot_encoded.columns = [col.replace("-", "_") for col in age_one_hot_encoded]
-    return pd.concat([df.drop(columns = "age_group"), age_one_hot_encoded], axis = 1)
+    return age - 1
 
 def adjust_gender(gender):
     """
@@ -76,7 +75,7 @@ def main():
     3. Saves the result into a new CSV file
     """
     subset = pd.read_csv("subset.csv")
-    age_transform = age_buckets(subset)
+    age_transform = subset.assign(age_years = subset["age_years"].apply(adjust_age))
     gender_transform = age_transform.assign(gender = age_transform["gender"].apply(adjust_gender))
     admission_transform = gender_transform.assign(
         admission_type = gender_transform["admission_type"].apply(adjust_admission)
