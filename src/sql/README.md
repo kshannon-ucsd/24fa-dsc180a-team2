@@ -53,14 +53,8 @@ The SQL script in this folder is designed to generate a similar subset that Zsol
 
 ## Running the SQL Script
 
-1. In your terminal, navigate to the sql folder in this repository
-2. Connect to Database:
-    ```bash
-     psql -U postgres -d mimic
-     ALTER DATABASE mimic SET search_path TO mimiciii;
-     ```
-3. Run the SQL script:
-    ```bash
-     \i data_subset_query_v1.sql
-     ```
+1. Open pgAdmin 4
+2. Connect to the mimic database
+3. Copy and paste the SQL script from the repo into the Query tool
+4. Download the data as a file and name it as `subset.csv`
     
