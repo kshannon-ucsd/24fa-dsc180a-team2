@@ -63,15 +63,25 @@ sofa_score AS (
 	) AS s on f.icustay_id = s.icustay_id
 ),
 
+-- Merge with oasis table to get information on patient's oasis scores
+oasis_score AS (
+	SELECT s.subject_id, s.hadm_id, s.icustay_id, s.dbsource, s.first_careunit, s.last_careunit, s.first_admission, s.outtime, s.los_icu, s.los_hospital, s.age_years, s.age_group, s.admission_type, s.hospital_expire_flag, s.has_chartevents_data, s.gender, s.sofa, o.oasis
+	FROM sofa_score AS s
+	JOIN (
+	SELECT o.subject_id, o.icustay_id, o.oasis
+	FROM oasis AS o
+	) AS o on s.icustay_id = o.icustay_id
+),
+
 -- Create table that sums up elixhauser index to create comorbidity index
 elixhauser_sum AS (
 	SELECT *, e.congestive_heart_failure + e.cardiac_arrhythmias + e.valvular_disease + e.pulmonary_circulation + e.peripheral_vascular + e.hypertension + e.paralysis + e.other_neurological + e.chronic_pulmonary + e.diabetes_uncomplicated + e.diabetes_complicated + e.hypothyroidism + e.renal_failure + e.liver_disease + e.peptic_ulcer + e.aids + e.lymphoma + e.metastatic_cancer + e.solid_tumor + e.rheumatoid_arthritis + e.coagulopathy + e.obesity + e.weight_loss + e.fluid_electrolyte + e.blood_loss_anemia + e.deficiency_anemias + e.alcohol_abuse + e.drug_abuse + e.psychoses + e.depression AS score_sum
 	FROM elixhauser_quan AS e
 ),
 
--- Merge with elixhauser to obtain final subset of the data
-subset AS (
-	SELECT s.subject_id, s.hadm_id, s.icustay_id, s.dbsource, s.gender, s.age_years, s.age_group, s.admission_type, e.score_sum AS num_disorders, s.first_careunit, s.last_careunit, s.first_admission AS first_admission_icu, s.outtime AS outtime_icu, s.los_icu, s.los_hospital, s.sofa, s.has_chartevents_data, s.hospital_expire_flag, e.congestive_heart_failure, e.cardiac_arrhythmias, e.valvular_disease, e.pulmonary_circulation, e.peripheral_vascular, e.hypertension, e.paralysis, e.other_neurological, e.chronic_pulmonary, e.diabetes_uncomplicated, e.diabetes_complicated, e.hypothyroidism, e.renal_failure, e.liver_disease, e.peptic_ulcer, e.aids, e.lymphoma, e.metastatic_cancer, e.solid_tumor, e.rheumatoid_arthritis, e.coagulopathy, e.obesity, e.weight_loss, e.fluid_electrolyte, e.blood_loss_anemia, e.deficiency_anemias, e.alcohol_abuse, e.drug_abuse, e.psychoses, e.depression,
+-- Merge with elixhauser to obtain information on elixhauser index for each patient
+subset_elixhauser AS (
+	SELECT o.subject_id, o.hadm_id, o.icustay_id, o.dbsource, o.gender, o.age_years, o.age_group, o.admission_type, e.score_sum AS num_disorders, o.first_careunit, o.last_careunit, o.first_admission AS first_admission_icu, o.outtime AS outtime_icu, o.los_icu, o.los_hospital, o.sofa, o.oasis, o.has_chartevents_data, o.hospital_expire_flag, e.congestive_heart_failure, e.cardiac_arrhythmias, e.valvular_disease, e.pulmonary_circulation, e.peripheral_vascular, e.hypertension, e.paralysis, e.other_neurological, e.chronic_pulmonary, e.diabetes_uncomplicated, e.diabetes_complicated, e.hypothyroidism, e.renal_failure, e.liver_disease, e.peptic_ulcer, e.aids, e.lymphoma, e.metastatic_cancer, e.solid_tumor, e.rheumatoid_arthritis, e.coagulopathy, e.obesity, e.weight_loss, e.fluid_electrolyte, e.blood_loss_anemia, e.deficiency_anemias, e.alcohol_abuse, e.drug_abuse, e.psychoses, e.depression,
 		CASE
 			WHEN e.score_sum = 0 THEN '0'
 			WHEN e.score_sum = 1 THEN '1'
@@ -83,9 +93,22 @@ subset AS (
 			WHEN e.score_sum = 7 THEN '7'
 			ELSE '>8'
 		END AS comorbidity_score 
-	FROM sofa_score AS s
-	JOIN elixhauser_sum AS e ON s.hadm_id = e.hadm_id
+	FROM oasis_score AS o
+	JOIN elixhauser_sum AS e ON o.hadm_id = e.hadm_id
 	WHERE e.score_sum IS NOT NULL
+),
+
+-- Create table that contains whether a patient has sepsis and/or organ failure
+martin_sepsis AS (
+	SELECT m.subject_id, m.hadm_id, m.sepsis, m.organ_failure
+	FROM martin AS m
+),
+
+-- Merge with martin to obtain final subset of the data
+subset AS (
+	SELECT s.subject_id, s.hadm_id, s.icustay_id, s.dbsource, s.gender, s.age_years, s.age_group, s.admission_type, s.num_disorders, s.first_careunit, s.last_careunit, s.first_admission_icu, s.outtime_icu, s.los_icu, s.los_hospital, s.sofa, s.oasis, m.sepsis, m.organ_failure, s.has_chartevents_data, s.hospital_expire_flag, s.congestive_heart_failure, s.cardiac_arrhythmias, s.valvular_disease, s.pulmonary_circulation, s.peripheral_vascular, s.hypertension, s.paralysis, s.other_neurological, s.chronic_pulmonary, s.diabetes_uncomplicated, s.diabetes_complicated, s.hypothyroidism, s.renal_failure, s.liver_disease, s.peptic_ulcer, s.aids, s.lymphoma, s.metastatic_cancer, s.solid_tumor, s.rheumatoid_arthritis, s.coagulopathy, s.obesity, s.weight_loss, s.fluid_electrolyte, s.blood_loss_anemia, s.deficiency_anemias, s.alcohol_abuse, s.drug_abuse, s.psychoses, s.depression, s.comorbidity_score
+	FROM subset_elixhauser AS s
+	JOIN martin AS m ON s.subject_id = m.subject_id AND s.hadm_id = m.hadm_id
 )
 
 SELECT *
