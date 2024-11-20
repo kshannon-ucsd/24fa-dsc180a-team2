@@ -47,14 +47,19 @@ The SQL script in this folder is designed to generate a similar subset that Zsol
 ---
 
 ## Key Files
-1. `data_subset_query_v1.sql` - Performs the queries to create the subset
+1. `data_subset_query_v1.sql` - Performs the queries to create the subset and saves output to `data` folder
 
 ---
 
 ## Running the SQL Script
 
-1. Open pgAdmin 4
+<!-- 1. Open pgAdmin 4
 2. Connect to the mimic database
 3. Copy and paste the SQL script from the repo into the Query tool
-4. Download the data as a file and name it as `subset.csv`
+4. Download the data as a file and name it as `subset.csv` -->
+
+1. Navigate to `src/sql` folder in repo through terminal
+2. Connect to postgreSQL through postgres user
+3. Connect to mimic database through `\c mimic`
+4. Run `\i data_subset_query_v1.sql`
     
