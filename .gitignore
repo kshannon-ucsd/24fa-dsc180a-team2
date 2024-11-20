@@ -11,6 +11,8 @@ __pycache__/
 
 # CSV files
 *.csv
+*.png
+*.jpg
 
 # Distribution / packaging
 .Python
