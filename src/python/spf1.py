@@ -5,8 +5,6 @@
 
 # #### Loading the subset from Postgres local server
 
-# In[1]:
-
 import subprocess
 import sys
 
@@ -17,9 +15,6 @@ install('sqlalchemy')
 install('psycopg2')
 install('pandas')
 
-# In[18]:
-
-
 from sqlalchemy import create_engine
 from sqlalchemy import inspect
 import pandas as pd
@@ -27,44 +22,15 @@ import os
 engine = create_engine('postgresql+psycopg2://postgres:postgres@localhost:5432/mimic')
 os.makedirs('../../res/_demographics', exist_ok=True)
 
-
-# In[4]:
-
-
 inspector = inspect(engine)
 subset_query = open('../sql/data_subset_query_v1.sql', 'r').read()
 
-
-# In[8]:
-
-
 df = pd.read_sql_query(subset_query, engine)
-
-
-# In[9]:
-
-
-display(df.head())
-display(df.shape)
-display(df.columns)
-
-
-# In[10]:
-
 
 # Drop extraneous columns
 df = df.loc[:,~df.columns.duplicated()]
-df.columns
-
-
-# In[11]:
-
 
 df['admission_type'].unique()
-
-
-# In[12]:
-
 
 morbidities = set(['congestive_heart_failure',
        'cardiac_arrhythmias', 'valvular_disease', 'pulmonary_circulation',
@@ -87,11 +53,6 @@ def count_morbidities(row, morbidities):
 
 
 df['num_morbidity'] = df.apply(count_morbidities, args=(morbidities,), axis=1)
-df.head()
-
-
-# In[13]:
-
 
 ## All patient statistics
 num_patients = df.shape[0]
@@ -122,10 +83,6 @@ print(f'Mean SOFA score: {sofa_score:.2f} ± {CI_sofa_score:.2f}')
 print(f'Mean Length of Stay (ICU): {LOS_score_icu:.2f} ± {CI_LOS_score_icu:.2f}')
 print(f'Mean Length of Stay (Hospital): {LOS_score_hospital:.2f} ± {CI_LOS_score_hospital:.2f}')
 print(f'Percent Mortality: {prop_mortality * 100:.2f}% ± {CI_mortality * 100:.2f}')
-
-
-# In[14]:
-
 
 ## Creating a function for each statistic
 
@@ -210,10 +167,6 @@ number_of_disorders = [0, 1, 2, 3, 4, 5, 6, 7, '>8']
 
 admission_type = ['Elective', 'Non-elective']
 
-
-# In[16]:
-
-
 for grp in gender:
     gender_df = df[df['gender'] == grp]
     
@@ -297,16 +250,7 @@ for grp in admission_type:
                 'LOS Hospital (95% CI)': f'{LOS_hospital:.2f} ± {LOS_hospital_CI:.2f}',
                 'Percent Mortality (95% CI)': f'{mortality * 100:.2f}% ± {mortality_CI * 100:.2f}'})
 
-
-# In[19]:
-
 res = pd.DataFrame(rows)
 
 res.to_csv('../../res/_demographics/demographics.csv', index=False)
-
-
-# In[ ]:
-
-
-
 
