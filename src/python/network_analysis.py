@@ -2,10 +2,6 @@
 # coding: utf-8
 
 # ### Network Analysis
-
-# In[113]:
-
-
 import pandas as pd
 from collections import defaultdict
 import numpy as np
@@ -17,25 +13,13 @@ import os
 random.seed(2)
 np.random.seed(30)
 
-
-# In[107]:
-
-
 X = pd.read_csv("../../lca_data.csv")
 y = pd.read_csv("../../subgroups.csv")["six_classes"]
-
-
-# In[109]:
-
 
 try:
     X = X.drop(columns=["Unnamed: 0"])
 except: pass
 X['class'] = y
-
-
-# In[116]:
-
 
 def generate_network(class_num, X):
     class_data = X[X['class'] == class_num]
@@ -74,10 +58,6 @@ def generate_network(class_num, X):
                 G.add_edge(cooccurrence_matrix.index[i], cooccurrence_matrix.columns[j], weight=cooccurrence_matrix.iloc[i, j], alpha=cooccurrence_matrix.iloc[i, j])
                 
     return G 
-
-
-# In[115]:
-
 
 # Plotting the networks for each class
 os.makedirs("../../res/_networks", exist_ok=True)
