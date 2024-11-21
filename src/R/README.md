@@ -1,4 +1,4 @@
-# Sepsis Patient Subset
+# LCA Analysis
 
 ## Overview
 The R script in this folder is designed to perform the LCA analysis that Zsolt Zador, Alexander Landry, Michael D. Cusimano, and Nophar Geifam did in their [research paper](https://ccforum.biomedcentral.com/articles/10.1186/s13054-019-2486-6#article-info). The script is intended to be ran with in R and in RStudio.
