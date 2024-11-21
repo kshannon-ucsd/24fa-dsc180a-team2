@@ -64,7 +64,7 @@ def necessary_columns(df):
     return df.drop(columns = ["subject_id", "hadm_id", "icustay_id", "dbsource", "age_group", 
                               "num_disorders", "first_careunit", "last_careunit", 
                               "first_admission_icu", "outtime_icu", "los_icu", "los_hospital", 
-                              "sofa", "has_chartevents_data", "hospital_expire_flag", 
+                              "sofa", "oasis", "sepsis", "organ_failure", "has_chartevents_data", "hospital_expire_flag", 
                               "comorbidity_score"])
 
 def main():
@@ -74,14 +74,14 @@ def main():
     2. Preprocesses the data to make it suitable for LCA
     3. Saves the result into a new CSV file
     """
-    subset = pd.read_csv("/Users/ojasvashishtha/subset.csv")
+    subset = pd.read_csv("../../data/subset.csv")
     age_transform = subset.assign(age_years = subset["age_years"].apply(adjust_age))
     gender_transform = age_transform.assign(gender = age_transform["gender"].apply(adjust_gender))
     admission_transform = gender_transform.assign(
         admission_type = gender_transform["admission_type"].apply(adjust_admission)
     )
     lca_data = necessary_columns(admission_transform)
-    lca_data.to_csv("lca_data.csv")
+    lca_data.to_csv("../../data/lca_data.csv")
 
 if __name__ == "__main__":
     main()
